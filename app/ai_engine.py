@@ -3,38 +3,34 @@ from PIL import Image
 import json
 import cv2
 
-def call_gemini(image_np, api_key):
-    try:
-        client = genai.Client(api_key=api_key)
-        
-        # Usamos o nome puro do modelo. A v1 estável suporta este nome.
-        #model = genai.GenerativeModel('gemini-1.5-flash')
-        
-        image_pil = Image.fromarray(cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB))
-        
-        prompt = """
-        Extract handwriting to JSON. 
-        Keys: NOME, TELEFONE, CIDADE, BAIRRO, ORGAO.
-        Return ONLY JSON.
+def call_gemini(file, api_key):
+    MODEL_ID = 'gemini-2.5-flash' 
+    PROMPT = """
+        Analise a tabela na imagem e extraia os dados para o formato JSON. 
+        Siga rigorosamente estas regras:
+        1. Retorne uma lista de objetos com as chaves: "NOME", "TELEFONE", "CIDADE", "BAIRRO", "ORGAO".
+        2. Se uma palavra estiver ilegível, deixe o valor como string vazia "".
+        3. Processe a imagem de cima para baixo, linha por linha.
+        4. Responda APENAS o JSON, sem explicações, markdown ou blocos de código.
         """
-        
-        # Chamada padrão (compatível com v1 estável)
-        #response = model.generate_content([prompt, image_pil])
+    client = genai.Client(api_key=api_key)
+    try:
+        if file is None:
+            raise
         response = client.models.generate_content(
-            model='gemini-1.5-flash',
+            model=MODEL_ID,
             contents=[
-                prompt,
-                image_pil
-            ]
-        )
-        
-        # Parsing manual robusto
-        txt = response.text.strip().replace("```json", "").replace("```", "").strip()
-        return json.loads(txt)
-        
+                genai.types.Part.from_bytes(data=file, mime_type='image/jpeg'),
+                PROMPT
+                ]
+            )
+        clean_text = response.text.replace('```json', '').replace('```', '').strip()
+        try:
+            return json.loads(clean_text.strip())
+        except Exception as e:
+            # Caso a IA retorne algo que não é JSON puro
+            print(f"Erro ao decodificar JSON: {e}")
+            return []
+
     except Exception as e:
-        if "429" in str(e):
-            print("⚠️ Quota atingida. Aguardando 5 segundos...")
-            time.sleep(5) # Throttle básico
-        print(f"DEBUG IA: {e}")
-        return {"NOME": "ERRO", "TELEFONE": "", "CIDADE": "", "BAIRRO": "", "ORGAO": ""}
+        print(f"\nErro ao processar {file}: {e}")
