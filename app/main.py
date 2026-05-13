@@ -30,14 +30,14 @@ with st.sidebar:
             status_text = st.empty()
             all_data = []
             for idx, f in enumerate(uploaded_files):
-                status_text.info(f"Analisando arquivo {f.nome} ({idx+1}/{total_files}: {f.name})")
+                status_text.info(f"Analisando arquivo {f.name} ({type(f)}) ({idx+1}/{total_files}: {f.name})")
                 
 
                 image_bytes = preprocess_image(f)
 
                 if image_bytes:
                     try:
-                        data_list = call_gemini(image_bytes,api_key)
+                        data_list = call_gemini(image_bytes,api_key,bool(debug_mode))
                         
                         for item in data_list:
                             st.session_state.queue.append({
@@ -45,8 +45,12 @@ with st.sidebar:
                                 "data": item,
                                 "filename": f.name
                             })
+                        if debug_mode:
+                            print(f"Arquivo processado. ({f.name})")
 
                     except Exception as e:
+                        if debug_mode:
+                            print(f"Erro no arquivo {f.name}: {e}")
                         st.error(f"Erro no arquivo {f.name}: {e}")
 
                 progress_bar.progress((idx + 1) / total_files)

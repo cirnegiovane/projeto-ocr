@@ -3,7 +3,7 @@ from PIL import Image
 import json
 import cv2
 
-def call_gemini(file, api_key):
+def call_gemini(file, api_key,debug_mode):
     MODEL_ID = 'gemini-2.5-flash' 
     PROMPT = """
         Analise a tabela na imagem e extraia os dados para o formato JSON. 
@@ -13,10 +13,19 @@ def call_gemini(file, api_key):
         3. Processe a imagem de cima para baixo, linha por linha.
         4. Responda APENAS o JSON, sem explicações, markdown ou blocos de código.
         """
+    if debug_mode:
+        print(f"call client gemini")
     client = genai.Client(api_key=api_key)
+    if debug_mode:
+        if client:
+            print(f"failed call")
+        else:
+            print("sucess call")
     try:
         if file is None:
             raise
+        if debug_mode:
+            print(f"generate content ({MODEL_ID}, {PROMPT})")
         response = client.models.generate_content(
             model=MODEL_ID,
             contents=[
