@@ -1,8 +1,10 @@
 import streamlit as st
+from streamlit_image_zoom import image_zoom
 import pandas as pd
 from vision import preprocess_image, rotate_image
 from ai_engine import call_gemini
-import os, time
+import os, time, cv2
+import numpy as np
 
 st.set_page_config(page_title="Fichas to CSV", layout="wide")
 
@@ -66,7 +68,7 @@ if st.session_state.queue:
     
     current_idx = 0
     current = st.session_state.queue[0]
-    col1, col2 = st.columns([1.2, 1]) # Imagem um pouco maior
+    col1, col2 = st.columns([0.7, 0.3]) # Imagem um pouco maior
     
     with col1:
         c_rot1, c_rot2 = st.columns(2)
@@ -78,9 +80,25 @@ if st.session_state.queue:
             st.session_state.queue[current_idx]['img'] = rotate_image(current['img'], clockwise=False)
             st.rerun()
 
-        rotate_image(current['img'],)
-        st.image(current['img'], width=None, use_container_width=True)
-    
+        #rotate_image(current['img'],)
+        #st.image(current['img'], width=None, use_container_width=True)
+        #print(type(current['img']))
+        img_data = current['img']
+
+        if isinstance(img_data, bytes):
+            # Converte bytes para um array unidimensional de uint8
+            nparr = np.frombuffer(img_data, np.uint8)
+            # Decodifica para o formato de imagem (OpenCV)
+            img_np = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            # IMPORTANTE: OpenCV usa BGR, o Streamlit/Zoom usa RGB
+            img_np = cv2.cvtColor(img_np, cv2.COLOR_BGR2RGB)
+        else:
+            # Se já for um array (após uma rotação, por exemplo)
+            img_np = img_data
+
+        image_zoom(img_np,mode='default')
+
+
     with col2:
         with st.form("edit_form", clear_on_submit=True):
             d = current['data']

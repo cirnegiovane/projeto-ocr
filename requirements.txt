@@ -1,4 +1,5 @@
 streamlit
+streamlit-image-zoom
 opencv-python
 numpy
 pandas
