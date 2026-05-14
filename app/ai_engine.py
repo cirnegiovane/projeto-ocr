@@ -8,7 +8,7 @@ def call_gemini(file, api_key,debug_mode):
     PROMPT = """
         Analise a tabela na imagem e extraia os dados para o formato JSON. 
         Siga rigorosamente estas regras:
-        1. Retorne uma lista de objetos com as chaves: "NOME", "TELEFONE", "CIDADE", "BAIRRO", "ORGAO".
+        1. Retorne uma lista de objetos com as chaves: "NOME", "TELEFONE", "CIDADE", "BAIRRO", "ORGAO". 
         2. Se uma palavra estiver ilegível, deixe o valor como string vazia "".
         3. Processe a imagem de cima para baixo, linha por linha.
         4. Responda APENAS o JSON, sem explicações, markdown ou blocos de código.
@@ -16,11 +16,6 @@ def call_gemini(file, api_key,debug_mode):
     if debug_mode:
         print(f"call client gemini")
     client = genai.Client(api_key=api_key)
-    if debug_mode:
-        if client:
-            print(f"failed call")
-        else:
-            print("sucess call")
     try:
         if file is None:
             raise

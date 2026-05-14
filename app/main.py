@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from vision import preprocess_image
+from vision import preprocess_image, rotate_image
 from ai_engine import call_gemini
 import os, time
 
@@ -30,7 +30,7 @@ with st.sidebar:
             status_text = st.empty()
             all_data = []
             for idx, f in enumerate(uploaded_files):
-                status_text.info(f"Analisando arquivo {f.name} ({type(f)}) ({idx+1}/{total_files}: {f.name})")
+                status_text.info(f"Analisando arquivo {f.name}) ({idx+1}/{total_files}: {f.name})")
                 
 
                 image_bytes = preprocess_image(f)
@@ -64,10 +64,21 @@ if st.session_state.queue:
     st.divider()
     st.subheader(f"Revisão Manual ({len(st.session_state.queue)} pendentes)")
     
+    current_idx = 0
     current = st.session_state.queue[0]
     col1, col2 = st.columns([1.2, 1]) # Imagem um pouco maior
     
     with col1:
+        c_rot1, c_rot2 = st.columns(2)
+        if c_rot1.button("🔄 Girar 90° (Horário)", use_container_width=True):
+            st.session_state.queue[current_idx]['img'] = rotate_image(current['img'], clockwise=True)
+            st.rerun()
+        
+        if c_rot2.button("🔄 Girar 90° (Anti-horário)", use_container_width=True):
+            st.session_state.queue[current_idx]['img'] = rotate_image(current['img'], clockwise=False)
+            st.rerun()
+
+        rotate_image(current['img'],)
         st.image(current['img'], width=None, use_container_width=True)
     
     with col2:
