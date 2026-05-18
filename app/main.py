@@ -66,7 +66,7 @@ if st.session_state.queue:
     
     current_idx = 0
     current = st.session_state.queue[0]
-    col1, col2 = st.columns([1.2, 1]) # Imagem um pouco maior
+    col1, col2 = st.columns([0.8, 0.2]) # Imagem um pouco maior
     
     with col1:
         c_rot1, c_rot2 = st.columns(2)
